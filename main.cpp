@@ -15,15 +15,11 @@
 /* Assumptions:
  * - GFA comes from a compacted de Bruijn graph (eg, Bifrost)
  * - this means that every k-mer appears *once*
- * - filename of fasta are different, since I use that as the name 
- *   of the path
  */
-
 
 #define MCALLOC(ptr, len) ((ptr) = (__typeof__(ptr))calloc((len), sizeof(*(ptr))))
 #define MMALLOC(ptr, len) ((ptr) = (__typeof__(ptr))malloc((len) * sizeof(*(ptr))))
 #define MREALLOC(ptr, len) ((ptr) = (__typeof__(ptr))realloc((ptr), (len) * sizeof(*(ptr))))
-#define BUFLEN      16384
 
 KSEQ_INIT(gzFile, gzread)
 
@@ -149,7 +145,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                     start = i-k+1+1; //1-based index
                     if (!alg.strand) {
                         int j = alg.pos;
-                        if (j != k-1) {
+                        if (j != k-1) { // started later
                             start_substr = j-k+1+1;
                         }
                         while (i+1 < len_sequence && j+1 < len_node && 
@@ -163,28 +159,35 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         if (nt_2_bits[sequence[i]] == nt_2_bits[node[j]]) {
                             end++;
                         } 
+
+                        if (start_substr == 0 && j < len_node-1) { //ended earlier
+                            start_substr = 1;
+                        }
+
                         if (start_substr) {
-                            end_substr = start_substr + end - start + 1;
+                            end_substr = start_substr + end - start;
                         }
                     } else {
                         int j = alg.pos-k+1;
                         if (j != len_node-k) {
                             end_substr = j+k;
                         }
-                        while (i+1 < len_sequence && j-1 >= 0 && 
+                        while (i+1 < len_sequence && j-1 >= 0 && nt_2_bits[sequence[i]] < 4 &&
                                 ((uint64_t)(3-nt_2_bits[sequence[i]])&3ULL) == (uint64_t)nt_2_bits[node[j]]){
                             i++;
                             j--;
                             c = nt_2_bits[sequence[i]];
                             kmer = (kmer << 2 | c) & mask;
-
                         }
                         end = i;
-                        if (((uint64_t)(3-nt_2_bits[sequence[i]])&3ULL) == (uint64_t)nt_2_bits[node[j]]) {
+                        if (nt_2_bits[sequence[i]] < 4 && ((uint64_t)(3-nt_2_bits[sequence[i]])&3ULL) == (uint64_t)nt_2_bits[node[j]]) {
                             end++;
                         } 
+                        if (end_substr == 0 && j > 0) { //ended earlier
+                            end_substr = len_node;
+                        }
                         if (end_substr) {
-                            start_substr = end_substr-end+start-1;
+                            start_substr = end_substr - end + start;
                         }
                     }
                     printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;source=%s",seqname.c_str(),start,end,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
@@ -196,7 +199,8 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                     printf("\n");
 
                 }
-            } else {
+            } 
+            if (nt_2_bits[sequence[i]] == 4) {
                 start = 0;
                 len = 0, kmer = 0;
             }
@@ -238,7 +242,6 @@ int main(int argc, char **argv) {
                   << "  <fasta>   Path to at least one FASTA file.\n"
                   << "            You may provide multiple FASTA files.\n\n"
                   << "Options:\n"
-                  << "  --break               Split paths at non-ACGT characters.\n"
                   << "  -t, --threads <num>   Number of threads to use (default: number of cores).\n"
                   << "  -h, --help            Show this help message.\n";
         exit(1);
