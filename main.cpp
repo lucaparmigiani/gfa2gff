@@ -190,7 +190,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                             start_substr = end_substr - end + start;
                         }
                     }
-                    printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;source=%s",seqname.c_str(),start,end,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
+                    printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;genome=%s",seqname.c_str(),start,end,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
                     if (start_substr) {
                         printf(";substr=(%ld,%ld)",start_substr, end_substr);
                     }
