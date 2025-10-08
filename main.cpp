@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string.h>
+#include <vector>
 #include <cstring>
 #include <stdint.h>
 #include <fstream>
@@ -24,10 +25,10 @@
 KSEQ_INIT(gzFile, gzread)
 
 typedef struct fasta_t {
-    size_t len, reserved, sum_len, nk;
-    size_t *lens;
-    char **sequences;
-    kstring_t *names;
+    size_t nk;
+    std::vector<size_t> lens;
+    std::vector<char*> sequences;
+    std::vector<std::string> names;
 } fasta_t;
 
 fasta_t read_fasta(const char *fn) {
@@ -41,21 +42,13 @@ fasta_t read_fasta(const char *fn) {
 
     int ret;
     while ((ret = kseq_read(ks)) >= 0) {
-        size_t l = ks->seq.l; // get len sequence
-        if (fa.len == fa.reserved) { // if number of sequences == number of memory, add one
-            fa.reserved = fa.reserved < 8 ? 8 : fa.reserved + (fa.len>>1);
-            MREALLOC(fa.lens, fa.reserved);
-            MREALLOC(fa.sequences, fa.reserved);
-            MREALLOC(fa.names, fa.reserved);
-        }
-        fa.sequences[fa.len] = ks->seq.s;
-        fa.names[fa.len] = ks->name;
-
-        fa.lens[fa.len] = l;
-        fa.sum_len += l;
+        size_t l = ret; // get len sequence
+        char* seq = (char*) malloc(l);
+        memcpy(seq, ks->seq.s, l);
+        fa.sequences.push_back(seq);
+        fa.names.push_back(std::string(ks->name.s, ks->name.s+ks->name.l));
+        fa.lens.push_back(l);
         fa.nk += l;
-
-        fa.len++;
     }
     return fa;
 }
@@ -110,27 +103,26 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
 
     fasta_t fa = read_fasta(filepath.c_str());
 
-    kmer_t kmer = 0;
-    int len = 0;
     kmer_t mask = (1ULL << (2*k)) - 1;
-    uint64_t last_rid = UINT64_MAX;
-    uint64_t last_pos = UINT64_MAX;
-    int last_strand = 2;
-    uint64_t start = 0;
-    uint64_t end = 0;
-    uint64_t start_substr = 0;
-    uint64_t end_substr = 0;
-    //int counter_seqname = -1;
 
-    std::string seqname;
-    for (int z = 0; z < fa.len; z++) {
+    for (int z = 0; z < fa.lens.size(); z++) {
+        kmer_t kmer = 0;
+        int len = 0;
+        uint64_t last_rid = UINT64_MAX;
+        uint64_t last_pos = UINT64_MAX;
+        int last_strand = 2;
+        uint64_t start = 0;
+        uint64_t end = 0;
+        uint64_t start_substr = 0;
+        uint64_t end_substr = 0;
         char* sequence = fa.sequences[z];
         size_t len_sequence = fa.lens[z];
-        kstring_t name = fa.names[z];
-        std::string seqname(name.s, name.s+name.l);
-        size_t i = 0;
+        std::string seqname = fa.names[z];
+        int64_t i = 0;
+        int64_t j = 0;
         while (i < len_sequence) {
             unsigned char c = nt_2_bits[sequence[i]];
+            //std::cerr << "out" << sequence[i] << " " << i << "\n";
             if (c < 4) {
                 kmer = (kmer << 2 | c) & mask;
                 if (len+1 < k) len++;
@@ -142,62 +134,59 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                     }
                     str node = nodes[alg.rid];
                     size_t len_node = node.n;
-                    start = i-k+1+1; //1-based index
+                    start = i - k + 1;
+                    bool substr = false;
                     if (!alg.strand) {
-                        int j = alg.pos;
-                        if (j != k-1) { // started later
-                            start_substr = j-k+1+1;
+                        j = alg.pos;
+                        start_substr = j - k + 1;
+                        if (j - k + 1 != 0) { // started later
+                            substr = true;
                         }
+
                         while (i+1 < len_sequence && j+1 < len_node && 
-                                nt_2_bits[sequence[i]] == nt_2_bits[node[j]]){
+                                nt_2_bits[sequence[i+1]] == nt_2_bits[node[j+1]]){
                             i++;
                             j++;
                             c = nt_2_bits[sequence[i]];
                             kmer = (kmer << 2 | c) & mask;
                         }
                         end = i;
-                        if (nt_2_bits[sequence[i]] == nt_2_bits[node[j]]) {
-                            end++;
+
+                        // Started later or ended earlier
+                        if (substr || j < len_node-1) {
+                            end_substr = start_substr + (end - start + 1) - 1;
+                            substr = true;
                         } 
 
-                        if (start_substr == 0 && j < len_node-1) { //ended earlier
-                            start_substr = 1;
-                        }
-
-                        if (start_substr) {
-                            end_substr = start_substr + end - start;
-                        }
                     } else {
-                        int j = alg.pos-k+1;
-                        if (j != len_node-k) {
-                            end_substr = j+k;
-                        }
-                        while (i+1 < len_sequence && j-1 >= 0 && nt_2_bits[sequence[i]] < 4 &&
-                                ((uint64_t)(3-nt_2_bits[sequence[i]])&3ULL) == (uint64_t)nt_2_bits[node[j]]){
+                        j = alg.pos - k + 1;
+                        end_substr = alg.pos;
+                        if (alg.pos != len_node-1) {
+                            substr = true;
+                        } 
+
+                        while (i+1 < len_sequence && j-1 >= 0 && nt_2_bits[sequence[i+1]] < 4 &&
+                                ((uint64_t)(3-nt_2_bits[sequence[i+1]])&3ULL) == (uint64_t)nt_2_bits[node[j-1]]){
                             i++;
                             j--;
                             c = nt_2_bits[sequence[i]];
                             kmer = (kmer << 2 | c) & mask;
                         }
                         end = i;
-                        if (nt_2_bits[sequence[i]] < 4 && ((uint64_t)(3-nt_2_bits[sequence[i]])&3ULL) == (uint64_t)nt_2_bits[node[j]]) {
-                            end++;
-                        } 
-                        if (end_substr == 0 && j > 0) { //ended earlier
-                            end_substr = len_node;
-                        }
-                        if (end_substr) {
-                            start_substr = end_substr - end + start;
-                        }
-                    }
-                    printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;genome=%s",seqname.c_str(),start,end,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
-                    if (start_substr) {
-                        printf(";substr=(%ld,%ld)",start_substr, end_substr);
-                    }
-                    start_substr = 0;
-                    end_substr = 0;
-                    printf("\n");
 
+                        // Started later or ended earlier
+                        if (substr || j > 0) { 
+                            start_substr = end_substr - (end - start + 1) + 1;
+                            substr = true;
+                        }
+
+                        printf("\n%d %ld %ld %ld %ld\n", alg.pos+1, start_substr, end_substr, end, start);
+                    }
+                    printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;genome=%s",seqname.c_str(),start+1,end+1,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
+                    if (substr) {
+                        printf(";substr=(%ld,%ld)",start_substr+1, end_substr+1);
+                    }
+                    printf("\n");
                 }
             } 
             if (nt_2_bits[sequence[i]] == 4) {
