@@ -152,6 +152,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         }
                         end = i;
 
+                        // Started later or ended earlier
                         if (substr || j < len_node-1) {
                             end_substr = start_substr + (end - start + 1) - 1;
                             substr = true;
@@ -162,7 +163,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         end_substr = alg.pos;
                         if (alg.pos != len_node-1) {
                             substr = true;
-                        } 
+                        }
 
                         while (i+1 < len_sequence && j-1 >= 0 && nt_2_bits[sequence[i+1]] < 4 &&
                                 ((uint64_t)(3-nt_2_bits[sequence[i+1]])&3ULL) == (uint64_t)nt_2_bits[node[j-1]]){
@@ -173,10 +174,12 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         }
                         end = i;
 
+                        // Started later or ended earlier
                         if (substr || j > 0) { 
                             start_substr = end_substr - (end - start + 1) + 1;
                             substr = true;
                         }
+
                     }
                     printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;genome=%s",seqname.c_str(),start+1,end+1,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
                     if (substr) {
@@ -260,7 +263,6 @@ int main(int argc, char **argv) {
     kmertable_t *kmer_table = count_kmers(nodes, k);
     std::cerr << "Finished creating hashtable of kmers: " << kmer_table->num_kmers << " kmers found" << '\n';
     
-
     for (int i = 3; i < args.size(); i++) {
         std::cerr << "["<<i-2 << "/" << args.size()-3<<"] " << std::flush;
         gfa2gff(kmer_table, args[i], k, nodes);
