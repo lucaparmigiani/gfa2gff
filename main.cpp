@@ -152,7 +152,6 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         }
                         end = i;
 
-                        // Started later or ended earlier
                         if (substr || j < len_node-1) {
                             end_substr = start_substr + (end - start + 1) - 1;
                             substr = true;
@@ -174,13 +173,10 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                         }
                         end = i;
 
-                        // Started later or ended earlier
                         if (substr || j > 0) { 
                             start_substr = end_substr - (end - start + 1) + 1;
                             substr = true;
                         }
-
-                        printf("\n%d %ld %ld %ld %ld\n", alg.pos+1, start_substr, end_substr, end, start);
                     }
                     printf("%s\tgfa2gff\tSO:0000856\t%ld\t%ld\t.\t%c\t.\tID=%d;genome=%s",seqname.c_str(),start+1,end+1,(alg.strand? '-' : '+'), alg.rid, filename.c_str());
                     if (substr) {
