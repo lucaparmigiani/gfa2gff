@@ -18,10 +18,6 @@
  * - this means that every k-mer appears *once*
  */
 
-#define MCALLOC(ptr, len) ((ptr) = (__typeof__(ptr))calloc((len), sizeof(*(ptr))))
-#define MMALLOC(ptr, len) ((ptr) = (__typeof__(ptr))malloc((len) * sizeof(*(ptr))))
-#define MREALLOC(ptr, len) ((ptr) = (__typeof__(ptr))realloc((ptr), (len) * sizeof(*(ptr))))
-
 KSEQ_INIT(gzFile, gzread)
 
 typedef struct fasta_t {
@@ -122,7 +118,6 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
         int64_t j = 0;
         while (i < len_sequence) {
             unsigned char c = nt_2_bits[sequence[i]];
-            //std::cerr << "out" << sequence[i] << " " << i << "\n";
             if (c < 4) {
                 kmer = (kmer << 2 | c) & mask;
                 if (len+1 < k) len++;
@@ -208,7 +203,6 @@ void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& node
         std::string seqname = fa.names[z];
         printf("##sequence-region %s 1 %ld\n", seqname.c_str(), len_sequence);
     }
-
 }
 
 void read_file(const char* file, std::string& fa){
