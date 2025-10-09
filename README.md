@@ -28,7 +28,7 @@ GATNACAT
 
 ---
 
-Its compacted de Bruijn graph (without considering canonical unitigs) is the following:
+Its compacted de Bruijn graph (without considering canonical unitigs) for `k=3` is the following:
 
 ```
          ┌───(2) ATACA───┐
