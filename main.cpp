@@ -198,6 +198,19 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
     }
 }
 
+void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes) {
+    std::string filename = remove_extension(base_name(filepath));
+    std::cerr << "printing " << filename << '\n' << std::flush;
+    fasta_t fa = read_fasta(filepath.c_str());
+
+    for (int z = 0; z < fa.lens.size(); z++) {
+        size_t len_sequence = fa.lens[z];
+        std::string seqname = fa.names[z];
+        printf("##sequence-region %s 1 %ld\n", seqname.c_str(), len_sequence);
+    }
+
+}
+
 void read_file(const char* file, std::string& fa){
     std::cerr << "reading file..." << std::flush;
     std::ifstream fin(file);
@@ -263,6 +276,14 @@ int main(int argc, char **argv) {
     kmertable_t *kmer_table = count_kmers(nodes, k);
     std::cerr << "Finished creating hashtable of kmers: " << kmer_table->num_kmers << " kmers found" << '\n';
     
+    std::cerr << "Printing headers..." << std::flush;
+    printf("##gff-version 3.1.26\n");
+    for (int i = 3; i < args.size(); i++) {
+        header(kmer_table, args[i], k, nodes);
+    }
+    std::cerr << "ok" << std::flush;
+
+
     for (int i = 3; i < args.size(); i++) {
         std::cerr << "["<<i-2 << "/" << args.size()-3<<"] " << std::flush;
         gfa2gff(kmer_table, args[i], k, nodes);
