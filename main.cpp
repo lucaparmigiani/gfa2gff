@@ -118,6 +118,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
         int64_t j = 0;
         while (i < len_sequence) {
             unsigned char c = nt_2_bits[sequence[i]];
+            //std::cerr << "out" << sequence[i] << " " << i << "\n";
             if (c < 4) {
                 kmer = (kmer << 2 | c) & mask;
                 if (len+1 < k) len++;
