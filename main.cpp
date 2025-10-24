@@ -33,7 +33,10 @@ fasta_t read_fasta(const char *fn) {
     fasta_t fa;
     memset(&fa, 0, sizeof(fasta_t));
 
-	if ((fp = gzopen(fn, "r")) == 0) return fa;
+	if ((fp = gzopen(fn, "r")) == 0) { 
+        std::cerr << "\nError opening " << fn << "\n";
+        exit(1);
+    }
     ks = kseq_init(fp);
 
     int ret;
@@ -46,12 +49,9 @@ fasta_t read_fasta(const char *fn) {
         fa.lens.push_back(l);
         fa.nk += l;
     }
-    return fa;
-}
 
-void error(const char *msg) {
-    std::cerr << "Error: " << msg << '\n' << std::flush;
-    exit(1);
+    gzclose(fp);
+    return fa;
 }
 
 std::string base_name(std::string const & path) {
@@ -98,6 +98,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
     std::cerr << "printing " << filename << '\n' << std::flush;
 
     fasta_t fa = read_fasta(filepath.c_str());
+    //std::cerr << fa.lens.size() << "\n";
 
     kmer_t mask = (1ULL << (2*k)) - 1;
 
@@ -196,7 +197,7 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
 
 void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes) {
     std::string filename = remove_extension(base_name(filepath));
-    std::cerr << "printing " << filename << '\n' << std::flush;
+    //std::cerr << "header " << filename << '\n' << std::flush;
     fasta_t fa = read_fasta(filepath.c_str());
 
     for (int z = 0; z < fa.lens.size(); z++) {
@@ -276,7 +277,7 @@ int main(int argc, char **argv) {
     for (int i = 3; i < args.size(); i++) {
         header(kmer_table, args[i], k, nodes);
     }
-    std::cerr << "ok" << std::flush;
+    std::cerr << "ok\n" << std::flush;
 
 
     for (int i = 3; i < args.size(); i++) {
