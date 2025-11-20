@@ -8,8 +8,6 @@ This makes it possible for downstream tools to view and analyze the graph direct
 
 It is compatible with graphs produced by tools such as **Bifrost**, **GGCAT**, **TwoPaCo**, **BCALM2**, **Cuttlefish2** and any other that generate GFA representations of compacted de Bruijn graphs.
 
-------------------------------------------------------------
-
 ## What this means:
 
 Say you have a genome with three chromosomes.  
@@ -26,7 +24,6 @@ GATTCAT
 GATNACAT
 ```
 
----
 
 Its compacted de Bruijn graph (without considering canonical unitigs) for `k=3` is the following:
 
@@ -35,8 +32,6 @@ Its compacted de Bruijn graph (without considering canonical unitigs) for `k=3` 
 (1) GAT──┤               ├──(4) CAT
          └───(3) ATTCA───┘
 ```
-
----
 
 The GFF output by `gfa2gff` is shown below.
 Here:
@@ -66,7 +61,6 @@ chr3	gfa2gff	SO:0000856	5	7	.	+	.	ID=2;genome=example;substr=(3,5)
 chr3	gfa2gff	SO:0000856	6	8	.	+	.	ID=4;genome=example
 ```
 
----
 
 ## Install
 
@@ -96,7 +90,6 @@ Options:
 
 * `-t, --threads <N>`: number of threads (default: all available cores)
 
----
 
 ## Example
 
