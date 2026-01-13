@@ -89,6 +89,7 @@ gfa2gff <k> <graph.gfa> <genome.fasta> [more.fasta ...] [options]
 Options:
 
 * `-t, --threads <N>`: number of threads (default: all available cores)
+* `-a, --ignore_absent_kmers`: ignore when a k-mer is not found in the compacted de Bruijn graph
 
 
 ## Example
