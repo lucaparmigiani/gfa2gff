@@ -261,11 +261,9 @@ int main(int argc, char **argv) {
                 std::cerr << "Error: --threads requires a number" << std::endl;
                 return 1;
             }
-        } 
-        if (arg == "--ignore_absent_kmers" || arg == "-a") {
+        } else if (arg == "--ignore_absent_kmers" || arg == "-a") {
             ignore_absent_kmers = true;
-        }
-        else {
+        } else {
             args.push(argv[i]);
         }
     }
