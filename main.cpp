@@ -125,9 +125,14 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
                 if (len+1 < k) len++;
                 else {
                     auto alg = kmer_table->align(kmer);
-                    if (alg.pos == UINT32_MAX && !ignore_absent_kmers) {
-                        std::cerr << "\nError: kmer " << bits2kmer(kmer, k) << " not found" << '\n' << std::flush;
-                        exit(1);
+                    if (alg.pos == UINT32_MAX){
+                        if (ignore_absent_kmers) {
+                            i++;
+                            continue;
+                        } else {
+                            std::cerr << "\nError: kmer " << bits2kmer(kmer, k) << " not found" << '\n' << std::flush;
+                            exit(1);
+                        }
                     }
                     str node = nodes[alg.rid];
                     size_t len_node = node.n;
