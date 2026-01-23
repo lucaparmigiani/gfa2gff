@@ -24,7 +24,6 @@ GATTCAT
 GATNACAT
 ```
 
-
 Its compacted de Bruijn graph (without considering canonical unitigs) for `k=3` is the following:
 
 ```
@@ -45,20 +44,24 @@ Here:
 In **chr3** the 4th base (`N`) is not represented, since it is not an
 A/C/G/T character and most compacted de Bruijn graph tools ignore such regions.
 
+The `#num` represents an incremental 1-based number given to each fasta file. 
+It guarantess that seqnames from different genomes remain different afterwards.
+It can be deactivated with `--no_distinct_seqname`.
+
 ```
 ##gff-version 3.1.26
 ##sequence-region chr1 1 7
 ##sequence-region chr2 1 7
 ##sequence-region chr3 1 8
-chr1	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
-chr1	gfa2gff	SO:0000856	2	6	.	+	.	ID=2;genome=example
-chr1	gfa2gff	SO:0000856	5	7	.	+	.	ID=4;genome=example
-chr2	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
-chr2	gfa2gff	SO:0000856	2	6	.	+	.	ID=3;genome=example
-chr2	gfa2gff	SO:0000856	5	7	.	+	.	ID=4;genome=example
-chr3	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
-chr3	gfa2gff	SO:0000856	5	7	.	+	.	ID=2;genome=example;substr=(3,5)
-chr3	gfa2gff	SO:0000856	6	8	.	+	.	ID=4;genome=example
+chr1#1	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
+chr1#1	gfa2gff	SO:0000856	2	6	.	+	.	ID=2;genome=example
+chr1#1	gfa2gff	SO:0000856	5	7	.	+	.	ID=4;genome=example
+chr2#1	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
+chr2#1	gfa2gff	SO:0000856	2	6	.	+	.	ID=3;genome=example
+chr2#1	gfa2gff	SO:0000856	5	7	.	+	.	ID=4;genome=example
+chr3#1	gfa2gff	SO:0000856	1	3	.	+	.	ID=1;genome=example
+chr3#1	gfa2gff	SO:0000856	5	7	.	+	.	ID=2;genome=example;substr=(3,5)
+chr3#1	gfa2gff	SO:0000856	6	8	.	+	.	ID=4;genome=example
 ```
 
 
@@ -106,28 +109,28 @@ Output:
 ##sequence-region A 1 77
 ##sequence-region B 1 137
 ##sequence-region C 1 206
-A	gfa2gff	SO:0000856	1	11	.	+	.	ID=10;genome=a
-A	gfa2gff	SO:0000856	2	12	.	+	.	ID=11;genome=a
-A	gfa2gff	SO:0000856	3	13	.	+	.	ID=12;genome=a
-A	gfa2gff	SO:0000856	4	14	.	-	.	ID=12;genome=a
-A	gfa2gff	SO:0000856	5	15	.	+	.	ID=13;genome=a
-A	gfa2gff	SO:0000856	6	16	.	-	.	ID=13;genome=a
+A#1	gfa2gff	SO:0000856	1	11	.	+	.	ID=10;genome=a
+A#1	gfa2gff	SO:0000856	2	12	.	+	.	ID=11;genome=a
+A#1	gfa2gff	SO:0000856	3	13	.	+	.	ID=12;genome=a
+A#1	gfa2gff	SO:0000856	4	14	.	-	.	ID=12;genome=a
+A#1	gfa2gff	SO:0000856	5	15	.	+	.	ID=13;genome=a
+A#1	gfa2gff	SO:0000856	6	16	.	-	.	ID=13;genome=a
 ...
-B	gfa2gff	SO:0000856	1	11	.	-	.	ID=15;genome=b
-B	gfa2gff	SO:0000856	2	14	.	+	.	ID=3;genome=b
-B	gfa2gff	SO:0000856	5	16	.	+	.	ID=2;genome=b
-B	gfa2gff	SO:0000856	7	17	.	-	.	ID=14;genome=b
-B	gfa2gff	SO:0000856	8	18	.	-	.	ID=15;genome=b
+B#2	gfa2gff	SO:0000856	1	11	.	-	.	ID=15;genome=b
+B#2	gfa2gff	SO:0000856	2	14	.	+	.	ID=3;genome=b
+B#2	gfa2gff	SO:0000856	5	16	.	+	.	ID=2;genome=b
+B#2	gfa2gff	SO:0000856	7	17	.	-	.	ID=14;genome=b
+B#2	gfa2gff	SO:0000856	8	18	.	-	.	ID=15;genome=b
 ...
-C	gfa2gff	SO:0000856	126	137	.	+	.	ID=2;genome=c
-C	gfa2gff	SO:0000856	128	138	.	-	.	ID=14;genome=c
-C	gfa2gff	SO:0000856	129	139	.	-	.	ID=15;genome=c
-C	gfa2gff	SO:0000856	130	142	.	+	.	ID=3;genome=c
-C	gfa2gff	SO:0000856	133	144	.	+	.	ID=2;genome=c
-C	gfa2gff	SO:0000856	135	145	.	-	.	ID=14;genome=c
-C	gfa2gff	SO:0000856	136	146	.	-	.	ID=15;genome=c
-C	gfa2gff	SO:0000856	137	156	.	+	.	ID=4;genome=c
-C	gfa2gff	SO:0000856	165	182	.	+	.	ID=9;genome=c;substr=(3,20)
-C	gfa2gff	SO:0000856	189	206	.	-	.	ID=9;genome=c;substr=(3,20)
+C#3	gfa2gff	SO:0000856	126	137	.	+	.	ID=2;genome=c
+C#3	gfa2gff	SO:0000856	128	138	.	-	.	ID=14;genome=c
+C#3	gfa2gff	SO:0000856	129	139	.	-	.	ID=15;genome=c
+C#3	gfa2gff	SO:0000856	130	142	.	+	.	ID=3;genome=c
+C#3	gfa2gff	SO:0000856	133	144	.	+	.	ID=2;genome=c
+C#3	gfa2gff	SO:0000856	135	145	.	-	.	ID=14;genome=c
+C#3	gfa2gff	SO:0000856	136	146	.	-	.	ID=15;genome=c
+C#3	gfa2gff	SO:0000856	137	156	.	+	.	ID=4;genome=c
+C#3	gfa2gff	SO:0000856	165	182	.	+	.	ID=9;genome=c;substr=(3,20)
+C#3	gfa2gff	SO:0000856	189	206	.	-	.	ID=9;genome=c;substr=(3,20)
 ```
 

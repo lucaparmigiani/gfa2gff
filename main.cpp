@@ -92,7 +92,7 @@ void read_gfa(const char* file, Vec<str>& nodes){
     std::cerr << "ok\n" << std::flush;
 }
 
-void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes, bool ignore_absent_kmers) {
+void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes, bool ignore_absent_kmers, int num_genome, bool no_distinct_seqname) {
     std::string filename = remove_extension(base_name(filepath));
     //std::string filename = base_name(filepath);
     std::cerr << "printing " << filename << '\n' << std::flush;
@@ -115,6 +115,9 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
         char* sequence = fa.sequences[z];
         size_t len_sequence = fa.lens[z];
         std::string seqname = fa.names[z];
+        if (!no_distinct_seqname) {
+            seqname += "#" + std::to_string(num_genome);
+        }
         int64_t i = 0;
         int64_t j = 0;
         while (i < len_sequence) {
@@ -235,6 +238,7 @@ void read_file(const char* file, std::string& fa){
 int main(int argc, char **argv) {
     Vec<str> nodes;
     bool ignore_absent_kmers = false;
+    bool no_distinct_seqname = false;
 
     if (argc < 4) {
         std::cerr << "Usage:\n"
@@ -247,6 +251,7 @@ int main(int argc, char **argv) {
                   << "Options:\n"
                   << "  -t, --threads <num>   Number of threads to use (default: number of cores).\n"
                   << "  -a, --ignore_absent_kmers   Ignore when a k-mer is not found in the compacted de Bruijn graph.\n"
+                  << "  --no_distinct_seqname   Do not add #num after each seqname to make them distinct.\n"
                   << "  -h, --help            Show this help message.\n";
         exit(1);
     }
@@ -268,7 +273,10 @@ int main(int argc, char **argv) {
             }
         } else if (arg == "--ignore_absent_kmers" || arg == "-a") {
             ignore_absent_kmers = true;
-        } else {
+        } else if (arg == "--no_distinct_seqname") {
+            no_distinct_seqname = true;
+        }
+        else {
             args.push(argv[i]);
         }
     }
@@ -290,8 +298,9 @@ int main(int argc, char **argv) {
 
 
     for (int i = 3; i < args.size(); i++) {
-        std::cerr << "["<<i-2 << "/" << args.size()-3<<"] " << std::flush;
-        gfa2gff(kmer_table, args[i], k, nodes, ignore_absent_kmers);
+        int num_genome = i-2;
+        std::cerr << "["<< num_genome << "/" << args.size()-3<<"] " << std::flush;
+        gfa2gff(kmer_table, args[i], k, nodes, ignore_absent_kmers, num_genome, no_distinct_seqname);
     }
 
     for (int i = 0; i < nodes.size(); i++) nodes[i].clean();
