@@ -64,7 +64,6 @@ chr3#1	gfa2gff	SO:0000856	5	7	.	+	.	ID=2;genome=example;substr=(3,5)
 chr3#1	gfa2gff	SO:0000856	6	8	.	+	.	ID=4;genome=example
 ```
 
-
 ## Install
 
 ### Dependencies
@@ -106,9 +105,9 @@ gfa2gff 11 example/graph.gfa example/a.fa example/b.fa example/c.fa > graph.gff
 Output:
 ```
 ##gff-version 3.1.26
-##sequence-region A 1 77
-##sequence-region B 1 137
-##sequence-region C 1 206
+##sequence-region A#1 1 77
+##sequence-region B#2 1 137
+##sequence-region C#3 1 206
 A#1	gfa2gff	SO:0000856	1	11	.	+	.	ID=10;genome=a
 A#1	gfa2gff	SO:0000856	2	12	.	+	.	ID=11;genome=a
 A#1	gfa2gff	SO:0000856	3	13	.	+	.	ID=12;genome=a

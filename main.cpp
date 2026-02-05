@@ -203,7 +203,8 @@ void gfa2gff(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nod
     }
 }
 
-void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes) {
+void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& nodes,
+        bool no_distinct_seqname, int num_genome) {
     std::string filename = remove_extension(base_name(filepath));
     //std::cerr << "header " << filename << '\n' << std::flush;
     fasta_t fa = read_fasta(filepath.c_str());
@@ -211,6 +212,9 @@ void header(kmertable_t *kmer_table, std::string filepath, int k, Vec<str>& node
     for (int z = 0; z < fa.lens.size(); z++) {
         size_t len_sequence = fa.lens[z];
         std::string seqname = fa.names[z];
+        if (!no_distinct_seqname) {
+            seqname += "#" + std::to_string(num_genome);
+        }
         printf("##sequence-region %s 1 %ld\n", seqname.c_str(), len_sequence);
     }
 }
@@ -292,7 +296,8 @@ int main(int argc, char **argv) {
     std::cerr << "Printing headers..." << std::flush;
     printf("##gff-version 3.1.26\n");
     for (int i = 3; i < args.size(); i++) {
-        header(kmer_table, args[i], k, nodes);
+        int num_genome = i-2;
+        header(kmer_table, args[i], k, nodes, no_distinct_seqname, num_genome);
     }
     std::cerr << "ok\n" << std::flush;
 
