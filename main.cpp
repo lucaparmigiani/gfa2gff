@@ -65,30 +65,44 @@ std::string remove_extension(std::string const & filename) {
 
 void read_gfa(const char* file, Vec<str>& nodes){
     std::cerr << "reading file..." << std::flush;
-    std::ifstream fin(file);
-    if (!fin.is_open()) {
-        std::cerr << "opening file: " << file << '\n';
+    gzFile fin = gzopen(file, "rb");
+    if (fin == nullptr) {
+        std::cerr << "Error opening file: " << file << '\n';
         std::exit(EXIT_FAILURE);
     }
 
-    std::string line;
-    std::stringstream ss; 
     nodes.push({"empty", 5});
 
-    while (std::getline(fin, line, '\n')) {
-        std::string type;
-        ss.str(line);
+    kstream_t *stream = ks_init(fin);
+    kstring_t token = {0, 0, nullptr};
+    int delimiter;
 
-        ss >> type;
-        if (type[0] == 'S') {
-            std::string node, _;
-            ss >> _ >> node;
-            str node_str(node);
-            nodes.push(node_str);
+    while (ks_getuntil(stream, KS_SEP_TAB, &token, &delimiter) >= 0) {
+        bool is_segment = token.l == 1 && token.s[0] == 'S' && delimiter == '\t';
+
+        if (is_segment &&
+            ks_getuntil(stream, KS_SEP_TAB, &token, &delimiter) > 0 &&
+            delimiter == '\t' &&
+            ks_getuntil(stream, KS_SEP_TAB, &token, &delimiter) > 0) {
+            nodes.push(str(token.s, token.l));
         }
 
-        ss.clear();
+        if (delimiter != '\n' && delimiter != 0) {
+            ks_getuntil(stream, KS_SEP_LINE, &token, nullptr);
+        }
     }
+
+    int error_number = Z_OK;
+    const char* error_message = gzerror(fin, &error_number);
+    free(token.s);
+    ks_destroy(stream);
+    if (error_number != Z_OK && error_number != Z_STREAM_END) {
+        std::cerr << "Error reading file " << file << ": " << error_message << '\n';
+        gzclose(fin);
+        std::exit(EXIT_FAILURE);
+    }
+    gzclose(fin);
+
     std::cerr << "ok\n" << std::flush;
 }
 
@@ -249,7 +263,7 @@ int main(int argc, char **argv) {
                   << "  " << argv[0] << " <k> <gfa> <fasta> [more fasta ...] [options]\n\n"
                   << "Required arguments:\n"
                   << "  <k>       Integer, k-mer size.\n"
-                  << "  <gfa>     Path to GFA file.\n"
+                  << "  <gfa>     Path to a plain or gzip-compressed GFA file.\n"
                   << "  <fasta>   Path to at least one FASTA file.\n"
                   << "            You may provide multiple FASTA files.\n\n"
                   << "Options:\n"

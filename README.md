@@ -85,8 +85,10 @@ make
 Basic usage:
 
 ```bash
-gfa2gff <k> <graph.gfa> <genome.fasta> [more.fasta ...] [options]
+gfa2gff <k> <graph.gfa[.gz]> <genome.fasta> [more.fasta ...] [options]
 ```
+
+The GFA input may be plain text or gzip-compressed (`.gfa.gz`).
 
 Options:
 
@@ -132,4 +134,3 @@ C#3	gfa2gff	SO:0000856	137	156	.	+	.	ID=4;genome=c
 C#3	gfa2gff	SO:0000856	165	182	.	+	.	ID=9;genome=c;substr=(3,20)
 C#3	gfa2gff	SO:0000856	189	206	.	-	.	ID=9;genome=c;substr=(3,20)
 ```
-
